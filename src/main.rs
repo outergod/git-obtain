@@ -55,13 +55,18 @@ fn main() -> Result<()> {
         .or_else(|| parse_ssh(&args.repo))
         .unwrap_or(args.repo.clone());
 
-    let target = Path::new(&args.base_path)
+    let base_path = shellexpand::full(&args.base_path)?.into_owned();
+
+    let target = Path::new(&base_path)
         .join(args.r#type)
         .join(path.trim_end_matches(".git"));
 
     Command::new("git")
         .args(["clone", &args.repo, &target.to_string_lossy()])
-        .spawn()?;
+        .spawn()?
+        .wait()?;
+
+    println!("{}", target.to_string_lossy());
 
     Ok(())
 }
